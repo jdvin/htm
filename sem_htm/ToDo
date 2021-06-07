@@ -1,0 +1,18 @@
+ToDo
+
+--Clean Up--
+neaten encoders
+neaten factory
+something something something generator
+some factory functions have config parameters passed in whilst others access them directly?
+
+
+--Future--
+rethink boosting algorithm
+add column center bias to the input synapses (phase 1 spatial pooling in BAMI)
+something something something topology
+is there any reason to make synapses object oriented?
+    is there any reason not to would be the better question: are objects less efficient than arrays?
+
+--Note Well--
+encoder classifer as a dict will only work for numeric inputs
