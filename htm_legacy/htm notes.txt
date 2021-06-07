@@ -1,0 +1,62 @@
+ Principles of Encoding
+	- semantically similar data should result in SDRS with overlapping active bits
+	- the same input should always produce the same SDR
+	- the output should have the same dimensionality for all inputs
+	- out should have similar sparsity for all inputs and have enough 1 bits to handle noise and subsampling
+
+Spatial Pooling (check eps 7-9 for starting parameters
+	- spatial pooling occurs between input space and sdrs
+	- it must 
+		- maintain sparsity of input
+		- maintain overlap properties of input
+	- the spatial pool is composed of neurons which are organised into columns
+		- each neuron has
+			> proximal connections with the input space (identical through the column)
+			> distal connections with other neurons in the pool( unique for each neuron)
+				> the distal connections are seperated into segments where each segment may hold several connections which typically fire together	
+	- each column in the spatial pool is randomly assigned a potential pool of the input space (~85% with varying permanance)
+		- when the permanance of a connection is over a threshold the Ic-Sc pair are connected
+			- initially the spacial pooler will build a normal distribution of permanance values for the potential pool around the assigned threshold
+		- for a given input each colomn has an overlap score (ie. the number of cells in the input space connected (synapse perm > threshold) with the coloumn which are currently [1])
+			- when a columns overlap score is larger than a given threshold this column is active 
+	- Learning (ep 8)
+		- only active coloumns participate in learning (thus columns which are regularly inactive are inhibited since they never get a chance to vary their connection permanence
+			- for each input (time step); every active column increments the permanance of the connections with active cells in the input space
+				- conversly each connection to an inactive cell in the input space is decremented
+					- thus a potential pool for any input cell is constant however connections will instantiate and delete dynamically as the permanance fluxuates above and below threshold
+
+		- boosting occurs prior to learning(&inhibition) (ep 9)
+			- boosting multiples the real overlap score by some value to normalise the likelyhood of a cell being inhibited
+				- cells which exhibit lower real overlap scores experience a higher boost value and vice versa
+					- this serves to give cells which usually experience low real overlap scores a chance to learn whilst decreasing the overlap scores of cells which would usually be highly active
+					- the boost algorithm calculates the score from active duty cyles (which monitor the percentage of time a particular column spends active over a period)
+	- Topology (ep 10)
+		- the inhibition competition (=learning competition) is usually globalally measured ie. the top X% of all columns will be selected for learning
+		- however the columns can also be ordered topologically so that each column represents a specific 'receptive field' within the input space
+			- additionally, each coloumn now competes only with other columns in its neighbourhood which is defined as sharing the part of a receptive field
+		- rarely used due to
+			- small input space
+			- non topological input data
+			- added computational costs
+
+	- temporal memory (ep 11-12)why 
+		- every cell in a column shares the same connections with cells in the input space (proximal connections)
+		- cells can also connect to other cells in their own or other columns (distal connections)
+			- formed based on cells which were active prior (?? each segement is built off the collection of synapses of cells which were active in the previous time step)
+										ie. a segment is created when an active cell looks back at previous winner cells and sees a new pattern
+											else if the previous winner cells already synapse with a preexisting segment then the permanence of the synapses are strengthened
+	
+		- the temporal memory algorithm has two main steps
+			1) activate cells within active columns
+			- for each active column
+				- cells within an active column will activate under two conditions
+					- BURSTING: if no cell within an active column is in a predictive state, every cell within the column will become active
+						- a winner cell will then be chose to represent the in-sequence representation (cell with least segments)
+					- ELSE: the cells in a predictive state become active 
+
+					- from this a winner cell is chosen; the winner is either the correctly predicted cell ELSE the most (but not above threshold) predicted cell in the bursted column ELSE the cell with the least segments in the bursting column
+						- this winner then forms distal synapses with winner cells from most recent time step via algorithm <??>						
+
+			2) decide which cells to put into a predictive state
+				- for each cell(i) if any 'segment' of distal connections synapses with an above threshold number of [1] cells(e) then the cell(i) becomes predictive
+		
